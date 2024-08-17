@@ -1,0 +1,76 @@
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
+# import warnings
+# warnings.filterwarnings('ignore')
+
+from torch.utils.data import DataLoader,Dataset
+import matplotlib.pyplot as plt
+import torch
+from torchvision import transforms,utils,datasets
+from PIL import Image
+import pandas as pd
+import numpy as np
+import cv2
+import time
+
+def img_transform(img_pre, img_h_pre, img_w_pre, n):
+    img_h = int(img_h_pre * (1 - n))
+    img_w = int(img_w_pre * (1 - n))
+
+    data_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.RandomCrop((img_h, img_w)),
+    ])
+    return data_transform(img_pre)
+
+def target_transform(img_pre, img_h_pre, img_w_pre, n):
+    img_h = int(img_h_pre * (1 - n))
+    img_w = int(img_w_pre * (1 - n))
+
+    data_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.CenterCrop((img_h, img_w)),
+    ])
+    return data_transform(img_pre)
+
+def cv_show(name, img):
+    cv2.imshow(name, img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+imgs_path_root = 'E:\\PythonPrograms\\Data\\Miccai_2022_BUV_Dataset\\rawframes'
+imgs_category = 'benign'
+data_path = 'E:\\PythonPrograms\\myproject\\data\\Mydata'
+
+imgs_path_list_root = os.listdir(os.path.join(imgs_path_root, imgs_category))
+count = 0
+for items in imgs_path_list_root:
+    imgs_path = os.path.join(imgs_path_root, imgs_category, items)
+    imgs_path_list = os.listdir(imgs_path)
+
+    i = 0
+    time_start = time.time()
+    for item in imgs_path_list:
+        img_pre = cv2.imread(os.path.join(imgs_path, item))
+
+        img_shape = img_pre.shape
+        img_h_pre = img_shape[0]
+        img_w_pre = img_shape[1]
+        img = img_transform(img_pre, img_h_pre, img_w_pre, 0.05)
+        target = target_transform(img_pre, img_h_pre, img_w_pre, 0.05)
+        img = torch.unsqueeze(img, 1)
+        target = torch.unsqueeze(target, 1)
+
+        if i == 0:
+            data_array = img
+            target_array = target
+        else:
+            data_array = torch.cat([data_array, img], dim = 1)
+            target_array = torch.cat([target_array, target], dim = 1)
+        batch = [data_array, target_array]
+        i += 1
+    time_stop = time.time()
+    np.save(os.path.join(data_path, str(count)), batch)
+    count += 1
+    print('Data size:{}, target size:{}, time cost:{:.6f} s'.format(data_array.shape, target_array.shape, time_stop - time_start))
