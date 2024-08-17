@@ -1,0 +1,11 @@
+_target_: src.data.mnist_datamodule.MNISTDataModule
+
+dataset:
+  _target_: src.data.components.dataset.imgStitching
+  data_dir: ${paths.data_dir}Mydata
+
+data_dir: ${paths.data_dir}
+batch_size: 1 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+train_val_test_split: [70, 2, 2]
+num_workers: 0
+pin_memory: False
