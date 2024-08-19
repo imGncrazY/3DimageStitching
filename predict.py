@@ -1,4 +1,4 @@
-from myproject.src.models.mnist_module import MNISTLitModule
+from Model.src.models.mnist_module import MNISTLitModule
 from lightning import Trainer
 import numpy as np
 import torch
@@ -15,7 +15,7 @@ def img_show(predictions):
     for prediction in predictions[:]:
         cv_show('img', prediction)
 
-dm = ''
+dm = 'your/checkpoints/path'
 model = MNISTLitModule()
 trainer = Trainer(accelerator="gpu", devices=2)
 predictions = trainer.predict(model, dm)
